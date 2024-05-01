@@ -1,0 +1,14 @@
+Correr imagen:
+docker run --name postgres15 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=password -d postgres:15-alpine
+
+enter psql:
+docker exec -it postgres15 psql
+
+create db:
+docker exec -it postgres15 createdb --username=root --owner=root Calcium
+
+drop db:
+docker exec -it postgres15 dropdb Calcium
+
+create users table:
+CREATE TABLE users("id" bigserial PRIMARY KEY, "username" varchar NOT NULL, "email" varchar NOT NULL, "password" varchar NOT NULL);
