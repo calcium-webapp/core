@@ -11,16 +11,9 @@ type Database struct {
 	db *sql.DB
 }
 
-const (
-	host     = "localhost"
-	port     = 5433
-	user     = "root"
-	password = "password"
-	dbname   = "Calcium"
-)
+func NewDatabase(host string, port string, user string, password string, dbname string) (*Database, error) {
 
-func NewDatabase() (*Database, error) {
-	postgresqlDbInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+	postgresqlDbInfo := fmt.Sprintf("host=%s port=%s user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
 	db, err := sql.Open("postgres", postgresqlDbInfo)

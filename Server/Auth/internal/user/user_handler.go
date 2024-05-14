@@ -2,6 +2,7 @@ package user
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -53,7 +54,41 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (h *Handler) Logout(c *gin.Context) {
-	c.SetCookie("jwt", "", -1, "", "", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "logout successful"})
+func (h *Handler) CreateSSO(c *gin.Context) {
+	var req CreateSSOReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	res, err := h.Service.CreateSSO(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func (h *Handler) LoginSSO(c *gin.Context) {
+	var req LoginSSOReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	u, err := h.Service.LoginSSO(c.Request.Context(), &req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.SetCookie("jwt", u.accessToken, 3600, "/", "localhost", false, true)
+
+	res := LoginUserRes{
+		UserName: u.UserName,
+		ID:       strconv.Itoa(int(u.ID)),
+	}
+
+	c.JSON(http.StatusOK, res)
 }
