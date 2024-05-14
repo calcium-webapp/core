@@ -13,11 +13,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// TODO: Change secret key variable to enviromental
-const (
-	SECRET_KEY = "secret"
-)
-
 type service struct {
 	Repository
 	timeout time.Duration
@@ -94,4 +89,59 @@ func (s *service) Login(c context.Context, req *LoginUserReq) (*LoginUserRes, er
 	}
 
 	return &LoginUserRes{accessToken: ss, ID: strconv.Itoa(int(u.ID)), UserName: u.UserName}, nil
+}
+
+func (s *service) CreateSSO(c context.Context, req *CreateSSOReq) (*CreateSSORes, error) {
+	ctx, cancel := context.WithTimeout(c, s.timeout)
+	defer cancel()
+
+	u := &SSOUser{
+		Username: req.Username,
+		Provider: req.Provider,
+		Secret:   req.Secret,
+	}
+
+	r, err := s.Repository.CreateSSOUser(ctx, u)
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := &CreateSSORes{
+		ID:       r.ID,
+		Username: r.Username,
+		Provider: r.Provider,
+	}
+
+	return res, nil
+
+}
+
+func (s *service) LoginSSO(c context.Context, req *LoginSSOReq) (*LoginSSORes, error) {
+	ctx, cancel := context.WithTimeout(c, s.timeout)
+	defer cancel()
+
+	u, err := s.Repository.GetUserBySecret(ctx, req.Secret)
+	if err != nil {
+		return &LoginSSORes{}, err
+	}
+
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	if err != nil {
+		fmt.Println("Error generating ECDSA key:", err)
+		return &LoginSSORes{}, err
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.RegisteredClaims{
+		Issuer:    strconv.Itoa(int(u.ID)),
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)),
+	})
+
+	ss, err := token.SignedString(privateKey)
+	if err != nil {
+		fmt.Println(err.Error())
+		return &LoginSSORes{}, err
+	}
+
+	return &LoginSSORes{accessToken: ss, ID: u.ID, UserName: u.Username, Provider: u.Provider}, nil
 }
