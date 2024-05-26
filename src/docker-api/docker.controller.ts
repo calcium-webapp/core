@@ -39,4 +39,10 @@ export class DockerController {
 
         return await this.dockerService.deleteContainer(containerId);
     }
+
+    @Post("stop")
+    async stopContainer(@Body() containerId: ContainerConnectionDto) {
+
+        return await this.dockerService.stopContainer(containerId);
+    }
 }
