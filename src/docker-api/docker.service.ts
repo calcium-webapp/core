@@ -4,24 +4,28 @@ import { ContainerDto } from "./dto/container.dto";
 import { ContainerConnectionDto } from "./dto/container.connection.dto";
 import { RuntimeExtensions } from "@src/constants/extension.constant";
 import { Readable } from "stream";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class DockerService {
 
-    constructor(private readonly docker: Docker) {}
+    constructor(private readonly docker: Docker,
+                private readonly configService: ConfigService
+    ) {}
 
     async createContainer(createContainer: ContainerDto) {
 
       const container = await this.docker.container.create({
         Image: createContainer.runtime,
         name: createContainer.name,
-        Tty: true
+        Tty: true,
+        OpenStdin: true
       });
-      
+
       await container.start();
 
       return container.data;
-          
+
     }
 
     async startConnection(containerId: ContainerConnectionDto) {
@@ -41,7 +45,7 @@ export class DockerService {
         Tty: true,
         Cmd: ['bash', '-c', "node /home/scripts/client.js"],
         Env: [
-          `ROOM=${containerId.containerId}`,
+          `ROOM=codeeditor:${containerId.containerId}`,
           "WORKSPACE=/usr/my-workspace",
           `EXTENSION=${RuntimeExtensions[containerId.runtime]}`],
         Privileged: true,
@@ -60,7 +64,7 @@ export class DockerService {
           const exec = await container.exec.create(_cmd);
           const execStart = await exec.start({ hijack: true, stdin: true });
           const output = await getStreamOutput(execStart as Readable);
-          
+
           if (output === "") {
 
             const exec = await container.exec.create(cmd);
@@ -69,52 +73,52 @@ export class DockerService {
           }
 
           return {
-            terminal: `ws://localhost:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
+            terminal: `ws://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
           }
         }
 
         else {
 
           try {
-            
+
             await container.start();
 
             const exec = await container.exec.create(cmd);
             await exec.start({ hijack: true, stdin: true })
 
             return {
-                
-                terminal: `ws://localhost:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
+
+                terminal: `ws://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
             }
 
           } catch (error) {
 
             return {
-                
+
                 message: "Container not found",
                 statusCode: 404
             }
-          }       
+          }
         }
     }
 
     async deleteContainer(containerId: ContainerConnectionDto) {
-        
+
           const container = await this.docker.container.get(containerId.containerId);
-  
+
           await container.stop();
-  
+
           await container.delete({ force: true });
 
           return "Container deleted successfully!"
       }
-    
+
     async stopContainer(containerId: ContainerConnectionDto) {
-          
+
           const container = await this.docker.container.get(containerId.containerId);
-  
+
           await container.stop();
-  
+
           return "Container stopped successfully!"
       }
 }
