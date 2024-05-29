@@ -9,6 +9,7 @@ import { Equal, Repository } from "typeorm";
 import { User } from "@src/user/entities/user.entity";
 import { Runtime } from "./entities/runtime.entity";
 import { ContainerUpdateDto } from "./dto/container.update.dto";
+import { UserSSO } from "@src/user/entities/user-sso.entity";
 
 @Injectable()
 export class ContainerService {
@@ -16,7 +17,8 @@ export class ContainerService {
     constructor(private readonly configService: ConfigService,
                 @InjectRepository(Container) private readonly containerRepository: Repository<Container>,
                 @InjectRepository(User) private readonly userRepository: Repository<User>,
-                @InjectRepository(Runtime) private readonly runtimeRepository: Repository<Runtime>) {}
+                @InjectRepository(Runtime) private readonly runtimeRepository: Repository<Runtime>,
+                @InjectRepository(UserSSO) private readonly userSsoRepository: Repository<UserSSO>) {}
 
     async createContainer(createContainer: ContainerDto) {
 
@@ -25,9 +27,26 @@ export class ContainerService {
 
             const container = new Container();
 
-            const user = await this.userRepository.findOne({ where: {userId: createContainer.userId} });
+            const isNumberString = /^\d+$/.test(createContainer.userId);
 
-            if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            let user;
+
+            if (!isNumberString) {
+
+                user = await this.userRepository.findOne({ where: {userId: createContainer.userId} });
+
+                if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+
+            } else {
+
+                const userSso = await this.userSsoRepository.findOne({ where: {userProviderId: createContainer.userId} });
+
+                if (!userSso) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+
+                user = await this.userRepository.findOne({ where: {userId: userSso.userId.userId} });
+
+                if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            }
 
             const runtime = await this.runtimeRepository.findOne({ where: {name: createContainer.runtime} });
 
@@ -99,7 +118,28 @@ export class ContainerService {
 
     async getContainers(userId: string) {
 
-        const containers = await this.containerRepository.find({ where: {userId: Equal(userId)} });
+        const isNumberString = /^\d+$/.test(userId);
+
+            let user;
+
+            if (!isNumberString) {
+
+                user = await this.userRepository.findOne({ where: {userId: userId} });
+
+                if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+
+            } else {
+
+                const userSso = await this.userSsoRepository.findOne({ where: {userProviderId: userId} });
+
+                if (!userSso) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+
+                user = await this.userRepository.findOne({ where: {userId: userSso.userId.userId} });
+
+                if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            }
+
+        const containers = await this.containerRepository.find({ where: {userId: Equal(user.userId)} });
 
         return containers;
 
@@ -111,7 +151,7 @@ export class ContainerService {
 
         if (!containerToUpdate) return new HttpException('Container not found', HttpStatus.BAD_REQUEST);
 
-        containerToUpdate.name = container.name;
+        containerToUpdate.name = container.newName;
 
         await this.containerRepository.save(containerToUpdate);
 

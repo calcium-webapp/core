@@ -36,7 +36,7 @@ export class ContainerController {
     @Get("list/:id")
     async getContainers(@Param() params: any) {
 
-            if (!params.id) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
+            if (!params.id) return new HttpException('Missing user Id', HttpStatus.BAD_REQUEST);
 
             return await this.containerService.getContainers(params.id);
     }
