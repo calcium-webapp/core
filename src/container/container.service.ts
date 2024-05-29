@@ -73,7 +73,15 @@ export class ContainerService {
         try {
             const response = await axios.post('http://localhost:4000/container/start', containerId);
 
-            return response.data;
+            const container = await this.containerRepository.findOne({ where: {containerId: containerId.containerId} });
+
+            if (!container) return new HttpException('Container not found', HttpStatus.BAD_REQUEST);
+
+            return {
+
+                name: container.name,
+                data: response.data
+            }
 
         } catch (error) {
 
