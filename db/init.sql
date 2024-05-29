@@ -1,0 +1,3 @@
+-- CREATE DATABASE IF NOT EXISTS Calcium --
+SELECT 'CREATE DATABASE Calcium'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'Calcium')\gexec

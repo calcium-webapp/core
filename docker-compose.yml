@@ -1,7 +1,15 @@
----
-version: "3.8"
-
 services:
+  postgres:
+    image: postgres:16.0
+    container_name: calciumdb
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+
   my-service-production:
     container_name: my-service-production
     build:
