@@ -5,6 +5,7 @@ import { ContainerConnectionDto } from "./dto/container.connection.dto";
 import { RuntimeExtensions } from "@src/constants/extension.constant";
 import { Readable } from "stream";
 import { ConfigService } from "@nestjs/config";
+import { Runtime } from "@src/enum/runtime.enum";
 
 @Injectable()
 export class DockerService {
@@ -34,9 +35,7 @@ export class DockerService {
 
       let status: any = await container.status();
 
-      if (!containerId.runtime) {
-        throw new HttpException('Runtime is not valid or not present', HttpStatus.BAD_REQUEST);
-      }
+      const runtime: Runtime = status.data.Config.Image;
 
       const cmd = {
         AttachStdin: true,
@@ -47,7 +46,7 @@ export class DockerService {
         Env: [
           `ROOM=codeeditor:${containerId.containerId}`,
           "WORKSPACE=/usr/my-workspace",
-          `EXTENSION=${RuntimeExtensions[containerId.runtime]}`],
+          `EXTENSION=${RuntimeExtensions[runtime]}`],
         Privileged: true,
         User: "root"
       }
@@ -73,7 +72,8 @@ export class DockerService {
           }
 
           return {
-            terminal: `ws://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
+            websocket: `wss://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
+            runtime: runtime,
           }
         }
 
@@ -88,7 +88,8 @@ export class DockerService {
 
             return {
 
-                terminal: `ws://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1&logs=1`
+                websocket: `wss://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
+                runtime: runtime,
             }
 
           } catch (error) {

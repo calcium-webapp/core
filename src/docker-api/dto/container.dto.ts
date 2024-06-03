@@ -2,7 +2,7 @@ import { Runtime } from "@src/enum/runtime.enum";
 import { IsEnum, IsNotEmpty, IsNumberString } from "class-validator";
 
 export class ContainerDto {
-    
+
     @IsNotEmpty()
     name!: string;
 
@@ -11,6 +11,5 @@ export class ContainerDto {
     runtime!: Runtime // node, python, blank
 
     @IsNotEmpty()
-    @IsNumberString()
-    userId!: number
+    userId!: string
 }

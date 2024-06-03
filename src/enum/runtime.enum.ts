@@ -1,6 +1,6 @@
 export enum Runtime {
 
-    python = "python-codespace",
-    node = "node-codespace",
+    python = "python",
+    node = "node",
     blank = "blank-codespace"
 }
