@@ -1,8 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
-import  InitSeeder  from '../../db/seeds/init.seeder';
-import { SeederOptions } from 'typeorm-extension';
 
 ConfigModule.forRoot({
     envFilePath: `.env`,
@@ -26,11 +24,5 @@ export const DataSourceConfig: DataSourceOptions = {
     namingStrategy: new SnakeNamingStrategy(),
 };
 
-const options = {
 
-    ...DataSourceConfig,
-    seeds: [InitSeeder],
-}
-
-
-export const AppDS = new DataSource(options as DataSourceOptions & SeederOptions);
+export const AppDS = new DataSource(DataSourceConfig);

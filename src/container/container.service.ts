@@ -27,6 +27,8 @@ export class ContainerService {
 
             const container = new Container();
 
+            console.log(createContainer)
+
             const isNumberString = /^\d+$/.test(createContainer.userId);
 
             let user;
@@ -48,7 +50,11 @@ export class ContainerService {
                 if (!user) return new HttpException('User not found', HttpStatus.BAD_REQUEST);
             }
 
+            console.log(user)
+
             const runtime = await this.runtimeRepository.findOne({ where: {name: createContainer.runtime} });
+
+            console.log(runtime)
 
             if (!runtime) return new HttpException('Runtime not found', HttpStatus.BAD_REQUEST);
 
@@ -71,7 +77,7 @@ export class ContainerService {
     async startConnection(containerId: ContainerConnectionDto) {
 
         try {
-            const response = await axios.post('http://localhost:4000/container/start', containerId);
+            const response = await axios.post(`http://${this.configService.get("HOST")}:4000/container/start`, containerId);
 
             const container = await this.containerRepository.findOne({ where: {containerId: containerId.containerId} });
 
@@ -93,7 +99,7 @@ export class ContainerService {
     async deleteContainer(containerId: ContainerConnectionDto) {
 
         try {
-            const response = await axios.post('http://localhost:4000/container/delete', containerId);
+            const response = await axios.post(`http://${this.configService.get("HOST")}:4000/container/delete`, containerId);
 
             const container = await this.containerRepository.findOne({ where: {containerId: containerId.containerId} });
 
@@ -113,7 +119,7 @@ export class ContainerService {
     async stopContainer(containerId: ContainerConnectionDto) {
 
         try {
-            const response = await axios.post('http://localhost:4000/container/stop', containerId);
+            const response = await axios.post(`http://${this.configService.get("HOST")}:4000/container/stop`, containerId);
 
             return response.data;
 

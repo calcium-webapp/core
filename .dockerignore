@@ -6,3 +6,5 @@
 !/.swcrc
 !/nest-cli.json
 !/src
+!/db
+!/.env
