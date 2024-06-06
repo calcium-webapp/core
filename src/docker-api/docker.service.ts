@@ -46,7 +46,8 @@ export class DockerService {
         Env: [
           `ROOM=codeeditor:${containerId.containerId}`,
           "WORKSPACE=/usr/my-workspace",
-          `EXTENSION=${RuntimeExtensions[runtime]}`],
+          `EXTENSION=${RuntimeExtensions[runtime]}`,
+          `PUBLIC_KEY=${this.configService.get("PUBLIC_KEY")}`,],
         Privileged: true,
         User: "root"
       }
