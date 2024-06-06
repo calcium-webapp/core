@@ -1,9 +1,7 @@
----
-version: "3.8"
-
 services:
-  my-service-production:
-    container_name: my-service-production
+  calciumapi-production:
+    container_name: calciumapi-production
+    env_file: .env
     build:
       target: production
       context: .
@@ -11,8 +9,12 @@ services:
         - PORT=${PORT}
     ports:
       - "${PORT}:${PORT}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - service-api-calcium
 
-  my-service-dev:
+  calciumapi-dev:
     container_name: my-service-dev
     restart: unless-stopped
     env_file: .env
@@ -30,3 +32,7 @@ services:
 
 volumes:
   node_modules:
+
+networks:
+  service-api-calcium:
+    external: true

@@ -72,7 +72,7 @@ export class DockerService {
           }
 
           return {
-            websocket: `wss://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
+            websocket: `wss://${this.configService.get("HOST")}/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
             runtime: runtime,
           }
         }
@@ -88,7 +88,7 @@ export class DockerService {
 
             return {
 
-                websocket: `wss://${this.configService.get("HOST")}:2375/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
+                websocket: `wss://${this.configService.get("HOST")}/containers/${containerId.containerId}/attach/ws?stream=1&stdout=1&stdin=1`,
                 runtime: runtime,
             }
 

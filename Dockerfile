@@ -44,10 +44,15 @@ FROM base AS production
 ENV NODE_ENV=production
 ENV USER=node
 
+RUN apk add --no-cache \
+    docker \
+    docker-cli \
+    docker-compose
+
 COPY --from=build /usr/bin/dumb-init /usr/bin/dumb-init
 COPY --from=build $DIR/node_modules $DIR/node_modules
 COPY --from=build $DIR/dist $DIR/dist
 
-USER $USER
+#USER $USER currently deactivated because of permission issues (docker socket)
 EXPOSE $PORT
 CMD ["dumb-init", "node", "dist/main.js"]
